@@ -47,6 +47,10 @@ export default function StudentLoginPage() {
 
           if (currentHost.startsWith("3u.")) {
             adminHost = currentHost.replace("3u.", "3u-ad.");
+          } else if (currentHost.split('.').length > 2) {
+             const parts = currentHost.split('.');
+             parts[0] = parts[0] + '-adm';
+             adminHost = parts.join('.');
           } else {
             adminHost = "admin." + currentHost;
           }

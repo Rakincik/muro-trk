@@ -561,16 +561,16 @@ export default function GroupsPage() {
             `"${m.enrolledAt ? new Date(m.enrolledAt).toLocaleDateString("tr-TR") : ""}"`
         ]);
         const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
-            headers.join(",") + "\n" + 
-            rows.map(e => e.join(",")).join("\n");
+            headers.join(";") + "\n" + 
+            rows.map(e => e.join(";")).join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `${detail.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_ogrenciler.csv`);
+        link.setAttribute("download", `${detail.name.replace(/[^a-z0-9ğüşıöçĞÜŞİÖÇ]/gi, '_').toLowerCase()}_ogrenciler.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        success("İndiriliyor", "Öğrenci listesi excel (csv) olarak indiriliyor.");
+        success("İndiriliyor", "Öğrenci listesi excel olarak indiriliyor.");
     };
 
     const nonMembers = useMemo(() => {

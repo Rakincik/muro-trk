@@ -42,7 +42,7 @@ import { PremiumTabs } from "@/components/ui/PremiumTabs";
 import { KpiGrid } from "@/components/ui/KpiGrid";
 import { BulkRegisterModal } from "./BulkRegisterModal";
 import { Tooltip } from "@/components/ui/Tooltip";
-
+import * as XLSX from 'xlsx';
 type DetailTab = "members" | "courses" | "settings";
 
 const COLOR_PRESETS = ["#6366f1", "#8b5cf6", "#3b82f6", "#ec4899", "#10b981", "#f59e0b", "#14b8a6", "#ef4444"];
@@ -245,7 +245,9 @@ export default function GroupsPage() {
         }
 
         try {
-            await groupsApi.update(token!, tenantId!, sourceId, { parentGroupId: targetId || undefined });
+            await groupsApi.update(token!, tenantId!, sourceId, { 
+                parentGroupId: targetId ? targetId : '00000000-0000-0000-0000-000000000000' 
+            });
             success("Taşındı", "Grup başarıyla taşındı.");
             loadGroups();
         } catch {
@@ -273,6 +275,28 @@ export default function GroupsPage() {
         }
     };
 
+    const exportToExcel = () => {
+        if (!groups || groups.length === 0) {
+            toastError("Hata", "Dışa aktarılacak grup bulunamadı.");
+            return;
+        }
+
+        const data = groups.map(g => ({
+            "Grup Adı": g.name,
+            "Veli Grup Adı": g.parentName || "-",
+            "Üye Sayısı": g.memberCount || 0,
+            "Ders Sayısı": g.courseCount || 0,
+            "Eğitim Tipi": g.educationType || "-",
+            "Oluşturulma Tarihi": new Date(g.createdAt).toLocaleDateString("tr-TR"),
+            "Son Kullanma Tarihi": g.expirationDate ? new Date(g.expirationDate).toLocaleDateString("tr-TR") : "-"
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Gruplar");
+        XLSX.writeFile(wb, "gruplar.xlsx");
+        success("Başarılı", "Gruplar Excel olarak indirildi.");
+    };
     const loadGroups = useCallback(async (isInitial = false) => {
         if (!token || !tenantId) return;
         setLoading(true);
@@ -686,6 +710,9 @@ export default function GroupsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button onClick={exportToExcel} className="p-2 rounded-xl bg-white border border-[#E2E8F0] hover:bg-[#E2E8F0]/20 text-[#10b981] flex items-center gap-1.5 shadow-sm" title="Excel İndir">
+                        <Download size={16} /> Excel
+                    </button>
                     <button onClick={loadGroups} className="p-2 rounded-xl bg-white border border-[#E2E8F0] hover:bg-[#E2E8F0]/20 text-[#A9A9A9]"><RefreshCw size={16} /></button>
                     <button onClick={openCreate} className="px-4 py-2 bg-[#0A1931] text-white text-sm font-bold rounded-xl hover:bg-[#1B3B6F] transition-colors flex items-center gap-1.5 shadow-lg shadow-black/10">
                         <Plus size={16} /> Yeni Grup
